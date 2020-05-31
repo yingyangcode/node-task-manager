@@ -4,12 +4,42 @@ const auth = require('../middleware/auth')
 
 const router = express.Router()
 
-
+// Fetching all tasks will get slow 
+// Provide options to fetch only whats needed
+// Filtering
+  // GET /tasks?completed=True
+// Pagination - 
+  // GET /tasks?limit=10
+  // GET /tasks?limit=10&skip=10
+// Sorting
+  // GET /tasks?sortBy=createdAt:desc
 router.get('/tasks', auth, async (req, res) => {
+  const match = {}
+  const sort = {}
+  if (req.query.completed) {
+    // req.query.completed is a string, we need to convert it to a boolean
+    match.completed = req.query.completed === 'true'
+  }
 
+  if (req.query.sortBy) {
+    const parts = req.query.sortBy.split(':')
+    sort[parts[0]] = parts[1] === 'desc'? -1 : 1
+  }
   try {
     // const tasks = await Task.find({})
-    await req.user.populate('tasks').execPopulate()
+    // await req.user.populate('tasks').execPopulate()
+    await req.user.populate({
+      path: 'tasks',
+      match,
+      // match: {
+      //   completed: true
+      // }
+      options: {
+        limit: parseInt(req.query.limit),
+        skip: parseInt(req.query.skip),
+        sort // 1 ascending, -1 descending
+      }
+    }).execPopulate()
     res.send(req.user.tasks)
   } catch (e) {
     res.status(500).send()

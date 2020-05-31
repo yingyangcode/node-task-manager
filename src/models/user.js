@@ -48,6 +48,8 @@ const userSchema = new mongoose.Schema({
       required: true
     }
   }]
+}, {
+  timestamps: true
 })
 // userSchema.methods.getPublicProfile = function () {
 //   const user = this
